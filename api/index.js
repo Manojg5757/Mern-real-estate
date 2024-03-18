@@ -1,6 +1,7 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import dotenv from 'dotenv'
+import userRouter from './routes/user.router.js'
 
 dotenv.config()
 
@@ -17,3 +18,5 @@ const app = express()
 app.listen(3000, ()=>{
     console.log("Prime is Back in action once again")
 })
+
+app.use('/api/user',userRouter)
