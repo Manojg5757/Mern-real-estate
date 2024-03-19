@@ -1,11 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
-  const [error,setError] = useState(null)
-  const [loading,setLoading] = useState(false)
-  const navigate = useNavigate()
+  const { loading, error } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch()
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -13,36 +19,32 @@ const SignUp = () => {
     });
   };
 
-  const handleSubmit = async(e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-   try {
-    setLoading(true)
-    const res =await fetch('/api/auth/signin',{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify(formData)
-    })
-    const data =await res.json();
+    try {
+      dispatch(signInStart);
+      const res = await fetch("/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
 
-    if(data.success === false){
-      setLoading(false)
-      setError(data.message)
-      
-      return
+      if (data.success === false) {
+        dispatch(signInFailure(data.message));
+
+        return;
+      }
+      dispatch(signInSuccess(data));
+      navigate("/");
+      console.log(data);
+    } catch (error) {
+      dispatch(signInFailure(error.message));
     }
-    setLoading(false)
-    setError(null)
-    navigate('/')
-    console.log(data)
-    
-   } catch (error) {
-    setLoading(false)
-    setError(error.message)
-   }
-  }
+  };
 
   console.log(formData);
 
@@ -64,18 +66,21 @@ const SignUp = () => {
           id="password"
           onChange={handleChange}
         />
-        <button disabled={loading}
+        <button
+          disabled={loading}
           className="bg-slate-700 rounded-lg uppercase p-3 text-white"
-          type="submit" 
+          type="submit"
         >
-          {loading ? "Loading..": "Sign In"}
+          {loading ? "Loading.." : "Sign In"}
         </button>
       </form>
       <div className="flex gap-2">
         <p>Don't Have an account?</p>
-        <p className="text-blue-400"><Link to='/signup'>SignUp</Link></p>
+        <p className="text-blue-400">
+          <Link to="/signup">SignUp</Link>
+        </p>
       </div>
-     {error && <p className=" text-red-500 mt-5">{error}</p>}
+      {error && <p className=" text-red-500 mt-5">{error}</p>}
     </div>
   );
 };
