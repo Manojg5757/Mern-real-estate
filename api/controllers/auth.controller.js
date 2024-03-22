@@ -42,16 +42,16 @@ export const signin = async (req, res, next) => {
 
 // for google oauth authentication
 export const google = async (req, res, next) => {
-  const { email } = req.body.email;
+
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email:req.body.email });
     if (user) {
       const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY);
       const { password, ...rest } = user._doc;
       res
         .cookie("access_token", token, { httpOnly: true })
-        .status(200, "created with google")
-        .json();
+        .status(200)
+        .json(rest);
     } else {
       const generatePassword =
         Math.random().toString(36).slice(-8) +
@@ -68,9 +68,11 @@ export const google = async (req, res, next) => {
       await newUser.save();
       const token = jwt.sign({id:newUser._id},process.env.SECRET_KEY)
       const {password:pass,...rest} = newUser._doc;
-      res.cookies("access_token",token,{httpOnly:true})
-      .status(200,"Signup success with google")
-      .json(rest)
+      res.cookie("access_token",token,{httpOnly:true})
+      .status(200)
+      .json(rest);
     }
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 };
